@@ -1,0 +1,17 @@
+[build-system]
+requires = ["setuptools>=64"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "rasher-qc"
+version = "0.1.0"
+description = "Pork rasher packaging defect detection and tray PASS/FAIL inspection"
+requires-python = ">=3.9"
+dependencies = ["pyyaml", "numpy"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
