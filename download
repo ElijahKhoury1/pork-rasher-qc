@@ -1,8 +1,0 @@
-datasets/
-runs/
-*.pt
-__pycache__/
-.ipynb_checkpoints/
-.env
-*.egg-info/
-docs/
