@@ -66,7 +66,7 @@ pytest --html=test_report.html --self-contained-html   # optional, needs pytest-
 
 ## AI use
 
-Document AI tools used, what for, how outputs were verified, and errors found here and in the report.
+AI was used to assist with code generation and writing the report. Also used to make amends and fix code to ensure that everything was functional
 
 ## Dataset and licence
 
