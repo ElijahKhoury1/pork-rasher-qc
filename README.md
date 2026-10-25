@@ -18,7 +18,7 @@ detector, then turns the detections into a **tray-level PASS/FAIL** decision.
 
 | | Description |
 |---|---|
-| **Input** | RGB image of a packaged tray (`.jpg/.jpeg/.png/.bmp`), resized to 640 px (dataset images are 720x540) |
+| **Input** | RGB image of a packaged tray (`.jpg/.jpeg/.png/.bmp`), resized to 416 px for the selected model (dataset images are 720x540) |
 | **Detector output** | List of `Detection(cls_name, conf, xyxy)`: class, confidence in [0,1], box in pixels |
 | **Tray output** | `{"status": "PASS"/"FAIL", "n_defects": int, "counts": {class: n}}` |
 | **Invalid input** | Missing file -> `FileNotFoundError`; unsupported extension -> `ValueError`; confidence outside [0,1] -> `ValueError` |
@@ -40,9 +40,11 @@ docs/            HTML API docs generated with pdoc (open docs/index.html)
 ## Local setup
 
 ```bash
-pip install pytest pytest-html
-pytest -v --html=tests/test_report.html --self-contained-html   # writes the test report
-pdoc -o docs src/rasher_qc                                      # generate HTML docs
+   pip install -r requirements.txt
+   pip install -e .
+   pip install pytest pytest-html pdoc
+   pytest -v --html=tests/test_report.html --self-contained-html   # writes the test report
+   pdoc -o docs src/rasher_qc                                      # generate HTML docs
 ```
 
 ## Workflow
@@ -50,7 +52,7 @@ pdoc -o docs src/rasher_qc                                      # generate HTML 
 1. `data.download_roboflow` downloads Version 4 in YOLO format.
 2. `data.validate_dataset`, `count_classes`, `find_cross_split_leakage` check the data
    (augmented copies of one frame must not sit in both train and test).
-3. 'leakage.py' removes frames that appear in more than one split (augmented copies of the same photo, matched by file name), so the test images are unseen. It cannot catch near-duplicate frames with different names.
+3. `leakage.py` removes frames that appear in more than one split (augmented copies of the same photo, matched by file name), so the test images are unseen. It cannot catch near-duplicate frames with different names.
 4. `train.train` fine-tunes pretrained YOLO weights. The notebook compares a baseline (`yolov8n`, 640 px)
    against alternatives (`yolov8s`, other image sizes).
 5. `evaluate` reports mAP50 / mAP50-95 / per-class AP, tray PASS/FAIL precision/recall/F1,
@@ -68,7 +70,7 @@ Selected model: YOLOv8n at 416 px (n_416), chosen on the validation split (mAP50
 
 ## AI use
 
-Claude was the main AI tool, with Copilot and ChatGPT used occasionally. AI wrote the initial code (the Python package, unit tests, README, licence file and Colab notebooks), explained YOLO, the metrics and the data splits, helped debug Colab and GitHub problems, and gave feedback on report drafts. Approximate contribution: about 95% of the code and 30% of the written report. I checked AI output by reading and running it, asking follow-up questions until I understood it at a fundamental level. The narrowed scope, final epoch count, leakage handling and PASS/FAIL rule were my decisions. AI errors included a bug in its own code, a wrong path to best.pt that broke evaluation, setup errors, a notebook GitHub rejected, and a leakage check that misses near-duplicate frames. Full reflection is in the report.
+Claude was the main AI tool, with Copilot and ChatGPT used occasionally. AI wrote the initial code (the Python package, unit tests, README, licence file and Colab notebooks), explained YOLO, the metrics and the data splits, helped debug Colab and GitHub problems, and gave feedback on report drafts. Approximate contribution: about 100% of the code and 30% of the written report. I checked AI output by reading and running it, asking follow-up questions until I understood it at a fundamental level. The narrowed scope, final epoch count, leakage handling and PASS/FAIL rule were my decisions. AI errors included a bug in its own code, a wrong path to best.pt that broke evaluation, setup errors, a notebook GitHub rejected, and a leakage check that misses near-duplicate frames. Full reflection is in the report.
 ## Dataset and licence
 
 Code: MIT. Dataset: "Pork Rasher Error(Packaging)" by Hello, Roboflow Universe, CC BY 4.0,
