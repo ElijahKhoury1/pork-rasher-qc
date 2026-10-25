@@ -38,13 +38,12 @@ docs/            HTML API docs generated with pdoc (open docs/index.html)
 ```
 
 ## Local setup
-
-```bash
-   pip install -r requirements.txt
-   pip install -e .
-   pip install pytest pytest-html pdoc
-   pytest -v --html=tests/test_report.html --self-contained-html   # writes the test report
-   pdoc -o docs src/rasher_qc                                      # generate HTML docs
+```
+pip install -r requirements.txt
+pip install -e .
+pip install pytest pytest-html pdoc
+pytest -v --html=tests/test_report.html --self-contained-html
+pdoc -o docs src/rasher_qc
 ```
 
 ## Workflow
