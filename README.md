@@ -31,20 +31,18 @@ should not cause a reject.
 ## Repository layout
 
 ```
-src/rasher_qc/   data.py, decision.py, train.py, evaluate.py, infer.py
-tests/           pytest unit tests (no GPU or dataset needed)
-notebooks/       colab_pipeline.ipynb  (full workflow)
-docs/            HTML API docs (generated, see below)
+src/rasher_qc/   data.py, leakage.py, decision.py, train.py, evaluate.py, infer.py
+tests/           pytest unit tests (data, decision, leakage) and test_report.html
+notebooks/       colab_pipeline.ipynb (full workflow), run_tests.ipynb, generate_docs.ipynb
+docs/            HTML API docs generated with pdoc (open docs/index.html)
 ```
 
 ## Local setup
 
 ```bash
-pip install -r requirements.txt
-pip install -e .
-pytest -v                                   # run tests
-pdoc -o docs src/rasher_qc                  # generate HTML docs
-pytest --html=test_report.html --self-contained-html   # optional, needs pytest-html
+pip install pytest pytest-html
+pytest -v --html=tests/test_report.html --self-contained-html   # writes the test report
+pdoc -o docs src/rasher_qc                                      # generate HTML docs
 ```
 
 ## Workflow
@@ -52,11 +50,15 @@ pytest --html=test_report.html --self-contained-html   # optional, needs pytest-
 1. `data.download_roboflow` downloads Version 4 in YOLO format.
 2. `data.validate_dataset`, `count_classes`, `find_cross_split_leakage` check the data
    (augmented copies of one frame must not sit in both train and test).
-3. `train.train` fine-tunes pretrained YOLO weights. The notebook compares a baseline (`yolov8n`, 640 px)
+3. 'leakage.py' removes frames that appear in more than one split (augmented copies of the same photo, matched by file name), so the test images are unseen. It cannot catch near-duplicate frames with different names.
+4. `train.train` fine-tunes pretrained YOLO weights. The notebook compares a baseline (`yolov8n`, 640 px)
    against alternatives (`yolov8s`, other image sizes).
-4. `evaluate` reports mAP50 / mAP50-95 / per-class AP, tray PASS/FAIL precision/recall/F1,
+5. `evaluate` reports mAP50 / mAP50-95 / per-class AP, tray PASS/FAIL precision/recall/F1,
    and latency, parameters and GFLOPs.
-5. The best model is chosen on the **validation** split; the **test** split is used once for the final result.
+6. The best model is chosen on the **validation** split; the **test** split is used once for the final result.
+
+## Final Model 
+Selected model: YOLOv8n at 416 px (n_416), chosen on the validation split (mAP50-95 0.352, 10.5 ms per image on a Tesla T4) over the baseline YOLOv8n at 640 px (0.272) and YOLOv8s at 640 px (0.194). Default settings: confidence threshold 0.25, seed 0, max 25 epochs, early-stopping patience 8, batch size 16. On the test split the tray decision has recall 0.82 and specificity 0.92. The recall target of 0.90 was not met. See the report for full results and limitations.
 
 ## Limitations
 
@@ -66,8 +68,7 @@ pytest --html=test_report.html --self-contained-html   # optional, needs pytest-
 
 ## AI use
 
-AI was used to assist with code generation and writing the report. Also used to make amends and fix code to ensure that everything was functional
-
+Claude was the main AI tool, with Copilot and ChatGPT used occasionally. AI wrote the initial code (the Python package, unit tests, README, licence file and Colab notebooks), explained YOLO, the metrics and the data splits, helped debug Colab and GitHub problems, and gave feedback on report drafts. Approximate contribution: about 95% of the code and 30% of the written report. I checked AI output by reading and running it, asking follow-up questions until I understood it, and confirming results against the data. The narrowed scope, final epoch count, leakage handling and PASS/FAIL rule were my decisions. AI errors included a bug in its own code, a wrong path to best.pt that broke evaluation, setup errors, a notebook GitHub rejected, and a leakage check that misses near-duplicate frames. Full reflection is in the report.
 ## Dataset and licence
 
 Code: MIT. Dataset: "Pork Rasher Error(Packaging)" by Hello, Roboflow Universe, CC BY 4.0,
